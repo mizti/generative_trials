@@ -9,6 +9,9 @@ application.windows64
 application.macosx
 out
 ffmpeg.txt
+*.jpg
+*.jpeg
+*.png
 *.png
 *.mpeg
 *.mpg

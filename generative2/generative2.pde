@@ -1,31 +1,36 @@
-//import com.hamoid.*;
-//VideoExport videoExport;
-
 import videoExport.*;
 VideoExport videoExport;
-
-
 int seed = int(random( -2147483648, 2147483647));
 boolean video_on = false;
-float _angleNoise, _radiusNoise;
-float _xNoise, _yNoise;
-float _angle, _radius;
-float _strokeCol;
-int _strokeChange;
+PImage img;
+int smallPoint, largePoint;
+float point_size;
+float dotnum = 0;
+
 
 void setup() {
     setup_seed();
     
-    size(1920,1080);
-    background(255);
+    //size(1920,1080);
+    //size(1080,1920);
+    size(1280,1600);
+    //size(800, 600);
+    background(0);
     frameRate(120);
     smooth();
     noFill();
+    //img = loadImage("input-image.jpg");
+    img = loadImage("input-image2.jpg");
+    img = loadImage("input-image3.jpg");
+    smallPoint = 12;
+    largePoint = 200;
+    imageMode(CENTER);
+    noStroke();
     
     reset_values();
     
     if (video_on) {
-        videoExport = new VideoExport(this, "output/hello.mp4");
+        videoExport = new VideoExport(this, "output/out"+month()day()-hour()+minute()+second()+".mp4");
         videoExport.startMovie();
     }
 }
@@ -35,54 +40,47 @@ void setup_seed() {
     randomSeed(seed);
     noiseSeed(int(random(seed)));
 }
-void reset_values(){
-    // color
-    //_strokeCol = 254;
-    _strokeCol = color(200, 2, 46);
-    _strokeChange = -1;
-    
-    // position and angle
-    _angle = random(254);
-    _radius = random(0.1);
-    _angleNoise = random(10);
-    _radiusNoise = random(10);
-    _xNoise = random(10);
-    _yNoise = random(10);
+
+// initialize values here 
+void reset_values() {
+    point_size = largePoint;
 }
 
-void update_values(){
-    _radiusNoise += 0.005;
-    _angleNoise += 0.005;
-    _angle += (noise(_angleNoise) * 2) - 1;
-
-    _xNoise += 0.01;
-    _yNoise += 0.01;
-    _strokeCol += _strokeChange;    
+// update values in each frame
+void update_values() {
+    point_size -= 0.12;
+    point_size = max(point_size, smallPoint);
 }
 
 void draw() {
     update_values();
     
-    _radius = (noise(_radiusNoise) * 1000) + 100;
-    if (_angle > 360) {_angle -= 360;}
-    if (_angle < 0) {_angle += 360;}
-
-    float centerX = width / 2 + (noise(_xNoise) * 100) - 50;
-    float centerY = height / 2 + (noise(_yNoise) * 100) - 50;
+    // write here main    
+    //float point_size = map(mouseX, 0, width, smallPoint, largePoint);
+    dotnum = float(frameCount) / 20;
+    if (frameCount > 600) {
+        dotnum = min(4, dotnum);
+        
+    } else{
+        dotnum = min(3, dotnum);
+    }
+    if (dotnum < 1) {
+        if (100.0 / random(0,100) < dotnum) {
+            dotnum = 1;
+        } else {
+            dotnum = 0;
+        }
+    }
+    for (int i = 0; i < dotnum; ++i) {
+        int x = int(random(width));
+        int y = int(random(height));
+        color pix = img.get(x, y);
+        fill(pix, 30);
+        float final_point_size = point_size + random(-10, 10);
+        circle(x, y, final_point_size);        
+    }
     
-    float rad = radians(_angle);
-    float x1 = centerX + (_radius * cos(rad) * 2);
-    float y1 = centerY + (_radius * sin(rad));
-    
-    float opprad = rad + PI;
-    float x2 = centerX + (_radius * cos(opprad) * 2);
-    float y2 = centerY + (_radius * sin(opprad));  
-    if (_strokeCol > 254) {_strokeChange = -1;}
-    if (_strokeCol < 1) {_strokeChange = 1;}
-
-    stroke(_strokeCol, 10);
-    strokeWeight(2);
-    line(x1, y1, x2, y2);
+    //println(frameCount);
     
     if (video_on) {
         videoExport.saveFrame();
@@ -91,7 +89,7 @@ void draw() {
 
 void keyPressed() {
     if (keyCode == ENTER) {
-        saveFrame("output/generative1-####.png");
+        saveFrame("output/out-####.png");
     } else if (key ==  'r') { //reset
         if (video_on) {
             videoExport.dispose();;        
@@ -121,6 +119,6 @@ void keyPressed() {
         loop();
     } else if (key ==  't') { //text dump
         fill(color(0,0,0));
-        text("hogehoge", width / 2, height / 2);
+        text("debug text here", 10, 10);
     }
 }
