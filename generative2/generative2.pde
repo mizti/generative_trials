@@ -30,7 +30,7 @@ void setup() {
     reset_values();
     
     if (video_on) {
-        videoExport = new VideoExport(this, "output/out"+month()day()-hour()+minute()+second()+".mp4");
+        videoExport = new VideoExport(this, "output/out"+month()+day()+hour()+minute()+second()+".mp4");
         videoExport.startMovie();
     }
 }

@@ -7,17 +7,25 @@ int seed = int(random( -2147483648, 2147483647));
 boolean video_on = false;
 ColorList palette = new ColorList();
 
-color c;
+float x1_base, x2_base, x3_base, y1_base, y2_base, y3_base;
+float[] x_base, y_base;
+int w, h;
+TColor tc;
+PVector v;
 
 void setup() {
     setup_seed();
     
     size(800, 600);
-    background(255);
+    colorMode(RGB, 255, 255, 255);
+    //background(255);
     frameRate(120);
     smooth();
-
+    
+    colorMode(RGB, 1, 1, 1);
     loop();
+    x_base = new float[3];
+    y_base = new float[3];
     
     reset_values();
     
@@ -35,18 +43,36 @@ void setup_seed() {
 
 // initialize values here 
 void reset_values() {
-    colorMode(RGB, 1, 1, 1);
-
     // Case1. get colors by theme
     //palette = getColorTheme(100,"soft","teal,lilac");
-
+    
+    TColor t = getColor("weak", "LIGHTSKYBLUE");
+    background(t.red(), t.green(), t.blue());
+    
     // Case2. get colors from strategy with picking from theme
-    ColorList palette1 = getColorTheme(100,"soft","teal,lilac");
-    palette = getColorFromTheory("TetradTheoryStrategy", palette1.get(int(random(0,99))));
-
+    ColorList palette1 = getColorTheme(100,"fresh","tomato,gold ");
+    palette = getColorFromTheory("LeftSplitComplementaryStrategy", palette1.get(int(random(0,99))));
+    
     // Case3. get colors from stragety with specific folor
     //TColor col = TColor.newRGBA(2.0/255, 97.0/255, 255.0/255, 1.0);
     //palette = getColorFromTheory("TetradTheoryStrategy", col);
+    x1_base = width * (0.5 / 4);
+    x2_base = width * (2.0 / 4);
+    x3_base = width * (3.5 / 4);
+    
+    y1_base = -50;
+    y2_base = -50;
+    y3_base = -50;
+    
+    x_base[0] = width * (0.5 / 4);
+    x_base[1] = width * (2.0 / 4);
+    x_base[2] = width * (3.5 / 4);
+    y_base[0] = -50;
+    y_base[1] = -50;
+    y_base[2] = -50;
+    
+    w = 50;
+    h = 50;
 }
 
 // update values in each frame
@@ -56,26 +82,24 @@ void update_values() {
 
 void draw() {
     update_values();
-    // write here main    
-
-    translate(x_base, y_base);
-    rotate(radians((noise(frameCount*0.05)-0.5)*100));
-    println(noise(frameCount)*100);
-
-
-    noStroke();
-    for (int i = 0; i < palette.size(); ++i) {
-        /*
-        TColor.newRGBA receives value from 0~1.
-        But, color takes value 0-255 by default. So you have to adjust color Mode with (RGB, 1, 1, 1) or (HSB, 1, 1, 1).
-        */
+    // write here main
+    for (int i = 0; i < 3; ++i) {
+        println(i);
+        //原点を画面中心に移動
+        pushMatrix();
+        translate(x_base[i], y_base[i]);
+        rotate(radians((noise(random(0,1) * 0.2) - 0.5) * 100));
         
-        TColor tc = palette.get(i % palette.size());//.toARGB();
-
+        noStroke();
+        tc =palette.get(int(random(0, palette.size() - 1)));
         fill(tc.red(), tc.green(), tc.blue());
-        //fill(c);
-        circle(random(0,width), random(0,height), 30);
-    }
+        ellipse(0, 0 , w + noise(random(0,1) * 0.3) * 200, h);
+        
+        v = localToScreen(0,2);
+        x_base[i] = v.x;
+        y_base[i] = v.y;
+        popMatrix();
+    }    
     
     if (video_on) {
         videoExport.saveFrame();
@@ -116,6 +140,14 @@ void keyPressed() {
         fill(color(0,0,0));
         text("debug text here", 10, 10);
     }
+}
+
+TColor getColor(String colorWeight, String colorName) {
+    
+    ColorTheme theme = new ColorTheme("theme");    
+    theme.addRange(colorWeight + " " + colorName,0.5);
+    
+    return theme.getColor();
 }
 
 ColorList getColorTheme(int numOfColors, String colorWeight, String colorName) {
@@ -176,20 +208,20 @@ ColorList getColorFromTheory(String colorTheory, TColor sourceColor) {
 }
 
 PVector localToScreen(float x, float y) {
-  PVector in = new PVector(x, y);
-  PVector out = new PVector();
-  PMatrix2D current_matrix = new PMatrix2D();
-  getMatrix(current_matrix);  
-  current_matrix.mult(in, out);
-  return out;
+    PVector in = new PVector(x, y);
+    PVector out = new PVector();
+    PMatrix2D current_matrix = new PMatrix2D();
+    getMatrix(current_matrix);  
+    current_matrix.mult(in, out);
+    return out;
 }
 
 PVector screenToLocal(float x, float y) {
-  PVector in = new PVector(x, y);
-  PVector out = new PVector();
-  PMatrix2D current_matrix = new PMatrix2D();
-  getMatrix(current_matrix);  
-  current_matrix.invert();
-  current_matrix.mult(in, out);
-  return out;
+    PVector in = new PVector(x, y);
+    PVector out = new PVector();
+    PMatrix2D current_matrix = new PMatrix2D();
+    getMatrix(current_matrix);  
+    current_matrix.invert();
+    current_matrix.mult(in, out);
+    return out;
 }
